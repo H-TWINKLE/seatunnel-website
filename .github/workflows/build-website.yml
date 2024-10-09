@@ -35,7 +35,7 @@ jobs:
                   npm run build
                   cp .asf.yaml build
                   ls
-                  tar -czvf build.tar.gz dist
+                  tar -czvf build.tar.gz build
 
             - name: Create GitHub Release
               uses: ncipollo/release-action@v1
