@@ -1,0 +1,47 @@
+name: "Build documentation"
+on:
+  push:
+    branches: [ main ]
+    
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        environment: Production
+        steps:
+            - name: Checkout
+              uses: actions/checkout@master
+              with:
+                  persist-credentials: false
+                  submodules: recursive
+                  
+            - name: Set branch environment variable
+              run: |
+               currentBranch=$(git branch --show-current)
+               now_date=$(date "+%Y-%m-%d_%H-%M-%S")
+
+               echo "project_branch=${currentBranch}-${now_date}" >> ${GITHUB_ENV}
+
+            - uses: actions/setup-node@v2
+              with:
+               node-version: 16.19.0
+                  
+            # 关注打包的指令
+            - name: Build
+              run: |
+                  ls
+                  npm set strict-ssl false
+                  npm install
+                  npm run sync
+                  npm run build
+                  cp .asf.yaml build
+                  ls
+                  tar -czvf build.tar.gz dist
+
+            - name: Create GitHub Release
+              uses: ncipollo/release-action@v1
+              with:
+                   tag: ${{ env.project_branch }}
+                   allowUpdates: true
+                   artifacts: "build.tar.gz"
+                   token: ${{ github.token }}
+                   generateReleaseNotes: true   
